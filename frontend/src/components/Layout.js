@@ -2,6 +2,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Chatbot from './Chatbot';
 
 function Layout() {
   return (
@@ -12,6 +13,7 @@ function Layout() {
           <Outlet />
         </main>
       </div>
+      <Chatbot />
     </div>
   );
 }

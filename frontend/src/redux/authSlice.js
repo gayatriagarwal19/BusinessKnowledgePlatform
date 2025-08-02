@@ -111,7 +111,7 @@ const authSlice = createSlice({
         state.token = null;
         state.user = null;
         // Do not set error if it's a 401 (unauthorized) from loadUser
-        if (action.payload && action.payload.msg === 'No token, authorization denied') {
+        if (action.payload && action.payload.msg === 'Token is not valid') {
           state.error = null;
         } else if (action.error && action.error.message.includes('401')) {
           state.error = null;
