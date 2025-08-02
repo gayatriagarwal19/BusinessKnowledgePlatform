@@ -1,22 +1,22 @@
 
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import { Toaster, toast } from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { getDocuments } from '../redux/documentSlice';
 
 function DocumentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
-    setMessage('');
-    setError('');
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError('Please select a file first.');
+      toast.error('Please select a file first.');
       return;
     }
 
@@ -29,19 +29,21 @@ function DocumentUpload() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setMessage(`File uploaded successfully: ${response.data.filename}`);
+      toast.success(`File uploaded successfully: ${response.data.filename}`);
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      dispatch(getDocuments());
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.msg || 'Error uploading file.');
+      toast.error(err.response?.data?.msg || 'Error uploading file.');
     }
   };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
+      <Toaster />
       <h2 className="text-2xl font-bold mb-4">Upload Document</h2>
       <div className="mb-4">
         <input
@@ -62,8 +64,6 @@ function DocumentUpload() {
       >
         Upload
       </button>
-      {message && <p className="mt-4 text-green-600">{message}</p>}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
     </div>
   );
 }

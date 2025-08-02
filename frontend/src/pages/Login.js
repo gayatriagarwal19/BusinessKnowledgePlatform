@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser } from '../redux/authSlice';
+import { Toaster, toast } from 'react-hot-toast';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -13,9 +14,13 @@ function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      toast.success('Logged in successfully!');
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+    if (error) {
+      toast.error(error.msg || 'An error occurred');
+    }
+  }, [isAuthenticated, navigate, error]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,6 +29,7 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -69,7 +75,6 @@ function Login() {
               {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </div>
-          {error && <p className="mt-2 text-center text-sm text-red-600">{error.msg}</p>}
           <div className="text-sm text-center">
             <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
               Don't have an account? Register here.

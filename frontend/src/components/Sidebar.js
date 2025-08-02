@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../redux/authSlice';
+import { Toaster, toast } from 'react-hot-toast';
 
 function Sidebar() {
   const dispatch = useDispatch();
@@ -10,11 +11,13 @@ function Sidebar() {
 
   const handleLogout = () => {
     dispatch(logout());
+    toast.success('Logged out successfully!');
     navigate('/login');
   };
 
   return (
     <div className="w-64 bg-gray-800 text-white flex flex-col">
+      <Toaster />
       <div className="p-4 text-2xl font-bold border-b border-gray-700">
         Enterprise Platform
       </div>
