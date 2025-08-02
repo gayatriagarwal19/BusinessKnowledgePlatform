@@ -1,20 +1,7 @@
-
-const UserActivity = require('../models/userActivity');
-
-exports.getUsage = async (req, res) => {
+exports.getSummary = async (req, res) => {
   try {
-    // This is a placeholder for the usage analytics implementation
-    res.json({ msg: 'Not yet implemented' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.getDocuments = async (req, res) => {
-  try {
-    // This is a placeholder for the document analytics implementation
-    res.json({ msg: 'Not yet implemented' });
+    // This is a placeholder for the analytics summary implementation
+    res.json({ msg: 'Analytics summary not yet implemented' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

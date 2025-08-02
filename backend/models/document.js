@@ -15,6 +15,15 @@ const documentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ['bill', 'review'],
+    required: true,
+  },
+  upload_date: {
+    type: Date,
+    default: Date.now,
+  },
   metadata: {
     type: Object,
   },
