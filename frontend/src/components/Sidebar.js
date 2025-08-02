@@ -22,9 +22,6 @@ function Sidebar() {
         Enterprise Platform
       </div>
       <nav className="flex-1 px-2 py-4 space-y-2">
-        <Link to="/dashboard" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
-          Dashboard
-        </Link>
         <Link to="/documents" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">
           Documents
         </Link>

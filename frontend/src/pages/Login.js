@@ -15,7 +15,7 @@ function Login() {
   useEffect(() => {
     if (isAuthenticated) {
       toast.success('Logged in successfully!');
-      navigate('/dashboard');
+      navigate('/documents');
     }
     if (error) {
       toast.error(error.msg || 'An error occurred');

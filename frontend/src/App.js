@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loadUser } from './redux/authSlice';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
@@ -26,7 +25,7 @@ function App() {
         <Route path="/" element={<Login />} />
         {isAuthenticated ? (
           <Route path="/" element={<Layout />}>
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Documents />} /> {/* Documents as home page */}
             <Route path="documents" element={<Documents />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="profile" element={<Profile />} />

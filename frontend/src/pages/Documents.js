@@ -26,17 +26,21 @@ function Documents() {
           ) : error ? (
             <p className="text-red-600">{error.msg || 'Error loading documents.'}</p>
           ) : (
-            <ul>
-              {documents.map((doc, index) => (
-                <li key={doc._id} className="flex justify-between items-center p-2 border-b">
-                  <div className="flex items-center">
-                    <span className="mr-2">{index + 1}.</span>
-                    <span>{doc.filename}</span>
-                  </div>
-                  <span>{new Date(doc.upload_date).toLocaleDateString()}</span>
-                </li>
-              ))}
-            </ul>
+            documents.length > 0 ? (
+              <ul>
+                {documents.map((doc, index) => (
+                  <li key={doc._id} className="flex justify-between items-center p-2 border-b">
+                    <div className="flex items-center">
+                      <span className="mr-2">{index + 1}.</span>
+                      <span>{doc.filename}</span>
+                    </div>
+                    <span>{new Date(doc.upload_date).toLocaleDateString()}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No documents found. Upload a document to get started!</p>
+            )
           )}
         </div>
       </div>

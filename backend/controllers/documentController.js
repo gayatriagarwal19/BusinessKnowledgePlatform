@@ -69,6 +69,18 @@ exports.upload = async (req, res) => {
         }
         documentType = 'bill'; // Assuming PDFs are bills for now
         break;
+      case 'docx':
+        const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+        extractedContent = result.value;
+        documentType = 'review'; // Assuming DOCX are reviews for now
+        break;
+      case 'txt':
+      case 'md':
+        extractedContent = buffer.toString('utf-8');
+        documentType = 'review'; // Assuming TXT/MD are reviews for now
+        break;
+      default:
+        return res.status(400).json({ msg: 'Unsupported file type' });
     }
 
     const document = new Document({

@@ -39,13 +39,18 @@ export const loginUser = createAsyncThunk(
 export const loadUser = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
-    if (localStorage.token) {
-      setAuthToken(localStorage.token);
+    if (!localStorage.token) {
+      // If no token, immediately return a payload indicating unauthenticated state
+      return { status: 401, msg: 'No token found' };
     }
+
+    setAuthToken(localStorage.token);
+
     try {
       const response = await axios.get('/api/auth/profile');
       return response.data;
     } catch (error) {
+      // If the request fails for reasons other than 401 (e.g., network error, server down)
       return rejectWithValue(error.response.data);
     }
   }
@@ -102,22 +107,24 @@ const authSlice = createSlice({
       })
       .addCase(loadUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
+        // If the payload indicates a 401 (no token found), set unauthenticated state
+        if (action.payload && action.payload.status === 401) {
+          state.isAuthenticated = false;
+          state.user = null;
+          state.token = null;
+          localStorage.removeItem('token'); // Ensure token is removed if it was invalid
+          setAuthToken(null);
+        } else {
+          state.isAuthenticated = true;
+          state.user = action.payload;
+        }
       })
       .addCase(loadUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
-        // Do not set error if it's a 401 (unauthorized) from loadUser
-        if (action.payload && action.payload.msg === 'Token is not valid') {
-          state.error = null;
-        } else if (action.error && action.error.message.includes('401')) {
-          state.error = null;
-        } else {
-          state.error = action.payload;
-        }
+        state.error = action.payload; // Keep error for other rejection reasons
       });
   },
 });

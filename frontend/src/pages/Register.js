@@ -14,7 +14,7 @@ function Register() {
   useEffect(() => {
     if (isAuthenticated) {
       toast.success('Registered successfully!');
-      navigate('/dashboard');
+      navigate('/documents');
     }
     if (error) {
       toast.error(error.msg || 'An error occurred');
