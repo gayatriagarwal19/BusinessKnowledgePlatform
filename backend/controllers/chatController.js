@@ -14,10 +14,22 @@ exports.sendMessage = async (req, res) => {
   }
   try {
     const { message } = req.body;
+    const userId = req.user.id; // Assuming authMiddleware attaches user ID
+
+    // Fetch documents for the current user
+    const userDocuments = await Document.find({ userId });
+
+    let context = "";
+    if (userDocuments.length > 0) {
+      context = userDocuments.map(doc => `Filename: ${doc.filename}\nContent: ${doc.content}`).join("\n\n---\n\n");
+    } else {
+      context = "No documents available for context.";
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
     const prompt = `Given the following context (if any):
 
-[CONTEXT_PLACEHOLDER]
+${context}
 
 Question: ${message}
 
