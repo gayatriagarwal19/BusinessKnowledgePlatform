@@ -47,7 +47,15 @@ export const loadUser = createAsyncThunk(
     setAuthToken(localStorage.token);
 
     try {
-      const response = await axios.get('/api/auth/profile');
+      const response = await axios.get('/api/auth/profile', {
+        validateStatus: (status) => {
+          return (status >= 200 && status < 300) || status === 401; // Treat 401 as success to prevent console error
+        },
+      });
+      // If status is 401, it means no valid token, so we return a specific payload
+      if (response.status === 401) {
+        return { status: 401, msg: 'No token, authorization denied' };
+      }
       return response.data;
     } catch (error) {
       // If the request fails for reasons other than 401 (e.g., network error, server down)

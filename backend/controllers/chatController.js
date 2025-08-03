@@ -9,12 +9,23 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 exports.sendMessage = async (req, res) => {
+  console.log('Received chat message request.');
   if (!genAI) {
+    console.error('GEMINI_API_KEY not configured.');
     return res.status(503).json({ error: "Chat functionality is disabled. Please configure GEMINI_API_KEY." });
   }
+
+  // Set headers for Server-Sent Events
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+
   try {
     const { message } = req.body;
     const userId = req.user.id; // Assuming authMiddleware attaches user ID
+    console.log(`User ID: ${userId}, Message: ${message}`);
 
     // Fetch documents for the current user
     const userDocuments = await Document.find({ userId });
@@ -27,21 +38,24 @@ exports.sendMessage = async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
-    const prompt = `Given the following context (if any):
+    const prompt = `Given the following context (if any):\n\n${context}\n\nQuestion: ${message}\n\nAnswer:`;
 
-${context}
+    const result = await model.generateContentStream({
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
+    });
 
-Question: ${message}
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      if (chunkText) {
+        res.write(`data: ${JSON.stringify({ reply: chunkText })}\n\n`);
+      }
+    }
+    res.end(); // End the stream when done
 
-Answer:`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    res.json({ reply: text });
   } catch (err) {
     console.error('Error sending message to Gemini:', err);
-    res.status(500).json({ msg: err.message || 'Server error' });
+    // Send an error event to the client
+    res.write(`event: error\ndata: ${JSON.stringify({ msg: err.message || 'Server error' })}\n\n`);
+    res.end();
   }
 };

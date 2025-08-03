@@ -100,7 +100,18 @@ exports.upload = async (req, res) => {
 
 exports.getDocuments = async (req, res) => {
   try {
-    const documents = await Document.find({ userId: req.user.id });
+    const { search } = req.query;
+    const userId = req.user.id;
+    let query = { userId };
+
+    if (search) {
+      query.$or = [
+        { filename: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const documents = await Document.find(query);
     res.json(documents);
   } catch (err) {
     console.error(err.message);

@@ -2,9 +2,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-export const getDocuments = createAsyncThunk('documents/getDocuments', async (_, { rejectWithValue }) => {
+export const getDocuments = createAsyncThunk('documents/getDocuments', async (searchTerm = '', { rejectWithValue }) => {
   try {
-    const response = await axios.get('/api/documents');
+    const token = localStorage.getItem('token');
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`/api/documents?search=${searchTerm}`, config);
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response.data);

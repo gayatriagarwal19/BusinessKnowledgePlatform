@@ -1,16 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { sendMessage, addUserMessage } from '../redux/chatSlice';
+import { sendMessage, addUserMessage, stopBotStreaming } from '../redux/chatSlice';
 
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const dispatch = useDispatch();
-  const { messages, isLoading } = useSelector((state) => state.chat);
+  const { messages, isLoading, isBotTyping, error } = useSelector((state) => state.chat);
+  const messagesEndRef = useRef(null);
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
+    // When closing, stop any ongoing streaming
+    if (isOpen) {
+      dispatch(stopBotStreaming());
+    }
   };
 
   const handleSend = () => {
@@ -21,28 +26,41 @@ function Chatbot() {
     }
   };
 
+  // Scroll to the bottom of the chat window
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <div className="fixed bottom-4 right-4">
+    <div className="fixed bottom-4 right-4 z-50">
       <button
         onClick={toggleChatbot}
-        className="bg-indigo-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl"
+        className="bg-indigo-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center text-3xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
         &#129302;
       </button>
       {isOpen && (
         <div className="absolute bottom-20 right-0 w-80 h-96 bg-white rounded-lg shadow-lg flex flex-col">
-          <div className="p-4 bg-indigo-600 text-white rounded-t-lg">
+          <div className="p-4 bg-indigo-600 text-white rounded-t-lg flex justify-between items-center">
             <h3 className="text-lg font-semibold">AI Assistant</h3>
+            <button onClick={toggleChatbot} className="text-white text-xl leading-none">&times;</button>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex-1 p-4 overflow-y-auto" style={{ scrollBehavior: "smooth" }}>
             {messages.map((msg, index) => (
-              <div key={index} className={`flex items-start mb-4 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-                <div className={`${msg.sender === 'user' ? 'bg-indigo-500 text-white' : 'bg-gray-200'} rounded-lg p-3`}>
-                  <p>{msg.text}</p>
+              <div key={index} className={`flex mb-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`${msg.sender === 'user' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 max-w-[70%]`}>
+                  <p>{msg.text}{msg.streaming && <span className="animate-pulse">...</span>}</p>
                 </div>
               </div>
             ))}
-            {isLoading && <p>Thinking...</p>}
+            {error && (
+              <div className="flex mb-4 justify-start">
+                <div className="bg-red-200 text-red-800 rounded-lg p-3 max-w-[70%]">
+                  <p>Error: {error}</p>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
           <div className="p-4 border-t">
             <div className="flex">
@@ -53,8 +71,13 @@ function Chatbot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                disabled={isLoading || isBotTyping}
               />
-              <button onClick={handleSend} className="px-4 py-2 bg-indigo-600 text-white rounded-r-lg hover:bg-indigo-700">
+              <button
+                onClick={handleSend}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-r-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={isLoading || isBotTyping}
+              >
                 Send
               </button>
             </div>
