@@ -8,31 +8,39 @@ import Documents from './pages/Documents';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const dispatch = useDispatch();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAppLoaded } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(loadUser());
   }, [dispatch]);
 
+  if (!isAppLoaded) {
+    return <div>Loading authentication...</div>; // Or a proper loading spinner
+  }
+
   return (
     <Router>
       <Routes>
-        <Route path="/register" element={<Register />} />
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Login />} />
-        {isAuthenticated ? (
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Layout />}>
-            <Route path="/" element={<Documents />} /> {/* Documents as home page */}
+            <Route index element={<Documents />} />
             <Route path="documents" element={<Documents />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="profile" element={<Profile />} />
           </Route>
-        ) : (
-          <Route path="*" element={<Navigate to="/login" />} />
-        )}
+        </Route>
+
+        {/* Catch-all for unmatched routes - redirects to login if not authenticated, or to / if authenticated */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

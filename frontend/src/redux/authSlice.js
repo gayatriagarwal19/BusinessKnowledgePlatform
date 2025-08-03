@@ -9,7 +9,9 @@ const initialState = {
   token: null,
   isAuthenticated: false,
   isLoading: false,
+  isAppLoaded: false,
   error: null,
+  loginMessage: null, // New state for login success message
 };
 
 export const registerUser = createAsyncThunk(
@@ -73,8 +75,12 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.loginMessage = null;
       localStorage.removeItem('token');
       setAuthToken(null);
+    },
+    clearLoginMessage: (state) => {
+      state.loginMessage = null;
     },
   },
   extraReducers: (builder) => {
@@ -104,6 +110,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         localStorage.setItem('token', action.payload.token);
         setAuthToken(action.payload.token);
+        state.loginMessage = 'Login successful!'; // Set message on successful login
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -115,6 +122,7 @@ const authSlice = createSlice({
       })
       .addCase(loadUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isAppLoaded = true; // Set to true when loadUser completes
         // If the payload indicates a 401 (no token found), set unauthenticated state
         if (action.payload && action.payload.status === 401) {
           state.isAuthenticated = false;
@@ -125,10 +133,12 @@ const authSlice = createSlice({
         } else {
           state.isAuthenticated = true;
           state.user = action.payload;
+          state.loginMessage = null; // Clear message on successful loadUser
         }
       })
       .addCase(loadUser.rejected, (state, action) => {
         state.isLoading = false;
+        state.isAppLoaded = true; // Set to true even if loadUser fails
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
@@ -137,5 +147,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearLoginMessage } = authSlice.actions;
 export default authSlice.reducer;

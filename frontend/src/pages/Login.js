@@ -2,25 +2,29 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser } from '../redux/authSlice';
+import { loginUser, clearLoginMessage } from '../redux/authSlice';
 import { Toaster, toast } from 'react-hot-toast';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
-  const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, loginMessage } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      toast.success('Logged in successfully!');
+    if (isAuthenticated && loginMessage) {
+      toast.success(loginMessage);
+      dispatch(clearLoginMessage()); // Clear the message after displaying
+      navigate('/documents');
+    } else if (isAuthenticated) {
+      // If already authenticated (e.g., on refresh), just navigate without toast
       navigate('/documents');
     }
     if (error) {
       toast.error(error.msg || 'An error occurred');
     }
-  }, [isAuthenticated, navigate, error]);
+  }, [isAuthenticated, navigate, error, loginMessage, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
