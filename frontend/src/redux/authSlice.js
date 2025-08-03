@@ -42,7 +42,6 @@ export const loadUser = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
     if (!localStorage.token) {
-      // If no token, immediately return a payload indicating unauthenticated state
       return { status: 401, msg: 'No token found' };
     }
 
@@ -54,13 +53,23 @@ export const loadUser = createAsyncThunk(
           return (status >= 200 && status < 300) || status === 401; // Treat 401 as success to prevent console error
         },
       });
-      // If status is 401, it means no valid token, so we return a specific payload
       if (response.status === 401) {
         return { status: 401, msg: 'No token, authorization denied' };
       }
       return response.data;
     } catch (error) {
-      // If the request fails for reasons other than 401 (e.g., network error, server down)
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async (passwords, { rejectWithValue }) => {
+    try {
+      const response = await axios.put('/api/auth/password', passwords);
+      return response.data;
+    } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
@@ -121,6 +130,7 @@ const authSlice = createSlice({
         state.user = null;
       })
       .addCase(loadUser.fulfilled, (state, action) => {
+        console.log('loadUser fulfilled payload:', action.payload);
         state.isLoading = false;
         state.isAppLoaded = true; // Set to true when loadUser completes
         // If the payload indicates a 401 (no token found), set unauthenticated state

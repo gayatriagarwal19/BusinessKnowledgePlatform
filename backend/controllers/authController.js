@@ -1,5 +1,6 @@
 
 const User = require('../models/user');
+const Document = require('../models/document');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -83,7 +84,47 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const documents = await Document.find({ userId: req.user.id });
+    const billCount = documents.filter(doc => doc.type === 'bill').length;
+    const feedbackCount = documents.filter(doc => doc.type === 'feedback').length;
+    const revenueCount = documents.filter(doc => doc.type === 'revenue').length;
+
+    res.json({
+      user: { email: user.email, id: user.id },
+      documentCounts: {
+        bills: billCount,
+        feedback: feedbackCount,
+        revenue: revenueCount,
+      },
+      });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Incorrect old password' });
+    }
+
+    user.password = newPassword; // Pre-save hook in user model will hash this
+    await user.save();
+
+    res.json({ msg: 'Password updated successfully' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
