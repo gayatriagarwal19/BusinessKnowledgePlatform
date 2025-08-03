@@ -11,7 +11,15 @@ exports.upload = async (req, res) => {
     const { originalname, buffer } = req.file;
     const fileExtension = originalname.split('.').pop().toLowerCase();
     let extractedContent = '';
+    const lowerCaseFilename = originalname.toLowerCase();
     let documentType = '';
+    if (lowerCaseFilename.includes('bill')) {
+      documentType = 'bill';
+    } else if (lowerCaseFilename.includes('feedback')) {
+      documentType = 'feedback';
+    } else if (lowerCaseFilename.includes('revenue')) {
+      documentType = 'revenue';
+    }
 
     // Basic file size validation (100MB)
     const fileSizeMB = buffer.length / (1024 * 1024);
@@ -67,17 +75,15 @@ exports.upload = async (req, res) => {
             console.log(`Deleted temporary image: ${imgPath}`);
           }
         }
-        documentType = 'bill'; // Assuming PDFs are bills for now
+
         break;
       case 'docx':
         const result = await mammoth.extractRawText({ arrayBuffer: buffer });
         extractedContent = result.value;
-        documentType = 'review'; // Assuming DOCX are reviews for now
         break;
       case 'txt':
       case 'md':
         extractedContent = buffer.toString('utf-8');
-        documentType = 'review'; // Assuming TXT/MD are reviews for now
         break;
       default:
         return res.status(400).json({ msg: 'Unsupported file type' });
@@ -88,6 +94,7 @@ exports.upload = async (req, res) => {
       filename: originalname,
       content: extractedContent,
       type: documentType,
+      size: buffer.length, // Add file size here
       upload_date: new Date(),
     });
     await document.save();

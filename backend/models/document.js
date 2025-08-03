@@ -17,7 +17,10 @@ const documentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['bill', 'review'],
+    enum: ['bill', 'feedback', 'revenue'],
+  },
+  size: {
+    type: Number, // Size in bytes
     required: true,
   },
   upload_date: {
