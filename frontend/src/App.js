@@ -1,6 +1,4 @@
 import React, { useEffect } from 'react';
-
-console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadUser } from './redux/authSlice';
@@ -11,6 +9,8 @@ import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+
+console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 
 function App() {
   const dispatch = useDispatch();
