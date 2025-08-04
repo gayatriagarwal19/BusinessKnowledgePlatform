@@ -2,8 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import setAuthToken from '../utils/setAuthToken';
 
-axios.defaults.baseURL = 'http://localhost:8000'; // Assuming backend runs on port 81000
-
 const initialState = {
   user: null,
   token: null,
