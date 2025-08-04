@@ -15,7 +15,7 @@ export const getDocuments = createAsyncThunk('documents/getDocuments', async (se
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await axios.get(`/api/documents?search=${searchTerm}`, config);
+    const response = await axios.get(`/documents?search=${searchTerm}`, config);
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response.data);

@@ -57,6 +57,7 @@ function DocumentUpload() {
             file:bg-indigo-50 file:text-indigo-700
             hover:file:bg-indigo-100"
         />
+        <p className="mt-2 px-2 text-sm text-gray-500">Supported formats: PDF, DOCX, TXT, MD</p>
       </div>
       <button
         onClick={handleUpload}

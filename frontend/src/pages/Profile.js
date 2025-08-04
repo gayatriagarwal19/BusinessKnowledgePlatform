@@ -12,10 +12,10 @@ function Profile() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   useEffect(() => {
-    // loadUser is already dispatched in App.js, but we can re-dispatch if needed
-    // or just rely on the user data being available in the store.
-    // For now, we'll assume user data is loaded.
-  }, [dispatch]);
+    if (!user) {
+      dispatch(loadUser());
+    }
+  }, [dispatch, user]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();

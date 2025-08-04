@@ -16,7 +16,7 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await axios.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -28,7 +28,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', userData);
+      const response = await axios.post('/auth/login', userData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -46,7 +46,7 @@ export const loadUser = createAsyncThunk(
     setAuthToken(localStorage.token);
 
     try {
-      const response = await axios.get('/api/auth/profile', {
+      const response = await axios.get('/auth/profile', {
         validateStatus: (status) => {
           return (status >= 200 && status < 300) || status === 401; // Treat 401 as success to prevent console error
         },
