@@ -12,17 +12,15 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@langchain/community": "^0.3.49",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.9.1",
     "mongoose": "^8.17.0",
     "multer": "^2.0.2",
     "node-poppler": "^8.0.4",
-    "openai": "^5.11.0",
     "pdf-parse": "^1.1.1",
     "redis": "^5.7.0",
     "tesseract.js": "^6.0.1"
