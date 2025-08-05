@@ -103,7 +103,7 @@ function DocumentUpload() {
         ) : (
           <p className="text-gray-500">Drag & drop a file here, or click to select</p>
         )}
-        <p className="mt-2 text-sm text-gray-500">Supported formats: PDF, DOCX, TXT, MD</p>
+        <p className="mt-2 text-sm text-gray-500">Supported formats: PDF, DOCX, TXT, MD, JPG, JPEG, PNG</p>
       </div>
 
       {isUploading && (
@@ -121,7 +121,7 @@ function DocumentUpload() {
       <button
         onClick={handleUpload}
         className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        disabled={!selectedFile || isUploading}
+        disabled={isUploading}
       >
         {isUploading ? 'Uploading...' : 'Upload'}
       </button>

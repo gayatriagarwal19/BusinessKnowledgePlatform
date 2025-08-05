@@ -1,18 +1,30 @@
 const Document = require('../models/document');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
-const { Poppler } = require('node-poppler');
 const Tesseract = require('tesseract.js');
-const fs = require('fs');
 const path = require('path');
+
+// Define allowed file extensions
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'jpg', 'jpeg', 'png']);
 
 exports.upload = async (req, res) => {
   try {
-    const { originalname, buffer } = req.file;
-    const fileExtension = originalname.split('.').pop().toLowerCase();
+    if (!req.file) {
+      return res.status(400).json({ msg: 'No file uploaded.' });
+    }
+
+    const { originalname, buffer, size } = req.file;
+    const fileExtension = path.extname(originalname).slice(1).toLowerCase();
+
+    // Validate file extension
+    if (!ALLOWED_EXTENSIONS.has(fileExtension)) {
+      return res.status(400).json({ msg: `Unsupported file type. Allowed types are: ${[...ALLOWED_EXTENSIONS].join(', ')}` });
+    }
+
     let extractedContent = '';
     const lowerCaseFilename = originalname.toLowerCase();
     let documentType = '';
+
     if (lowerCaseFilename.includes('bill')) {
       documentType = 'bill';
     } else if (lowerCaseFilename.includes('feedback')) {
@@ -21,72 +33,26 @@ exports.upload = async (req, res) => {
       documentType = 'revenue';
     }
 
-    // Basic file size validation (100MB)
-    const fileSizeMB = buffer.length / (1024 * 1024);
-    if (fileSizeMB > 100) {
-      return res.status(400).json({ msg: 'File size exceeds 100MB limit' });
-    }
-
-    // Determine document type and extract content
+    // Extract content based on file type
     switch (fileExtension) {
       case 'pdf':
-        // Save PDF to a temporary file for pdf-poppler
-        const tempPdfPath = path.join(__dirname, `temp_${Date.now()}.pdf`);
-        await fs.promises.writeFile(tempPdfPath, buffer);
-
-        const imagePaths = []; // Declared here to be accessible in finally block
-        const poppler = new Poppler(); // Instantiate Poppler here
-
-        try {
-          // Extract text using pdf-parse (for selectable text)
-          const data = await pdf(buffer);
-          extractedContent = data.text;
-
-          const outputPrefix = path.join(__dirname, `temp_page_${Date.now()}`);
-          await poppler.pdfToCairo(tempPdfPath, outputPrefix, { pngFile: true });
-
-          const filesInDir = await fs.promises.readdir(__dirname);
-          const prefixBase = path.basename(outputPrefix);
-          const pageImageFiles = filesInDir.filter(f =>
-            f.startsWith(prefixBase) && f.endsWith('.png')
-          );
-
-          console.log(`Found ${pageImageFiles.length} image files for OCR.`);
-
-          for (const imageFile of pageImageFiles) {
-            const imagePath = path.join(__dirname, imageFile);
-            imagePaths.push(imagePath);
-            console.log(`Attempting OCR on: ${imagePath}`);
-            try {
-              const { data: { text } } = await Tesseract.recognize(imagePath, 'eng');
-              console.log(`OCR result for ${imageFile}:\n${text.substring(0, 200)}...`); // Log first 200 chars
-              extractedContent += `\n\n--- OCR from ${imageFile} ---\n${text}`;
-            } catch (ocrErr) {
-              console.error(`Error during OCR for ${imageFile}:`, ocrErr);
-            }
-          }
-
-        } finally {
-          // Clean up temporary PDF and image files
-          await fs.promises.unlink(tempPdfPath);
-          console.log(`Deleted temporary PDF: ${tempPdfPath}`);
-          for (const imgPath of imagePaths) {
-            await fs.promises.unlink(imgPath).catch(err => console.error("Error deleting temp image:", err));
-            console.log(`Deleted temporary image: ${imgPath}`);
-          }
-        }
-
+        const data = await pdf(buffer);
+        extractedContent = data.text;
         break;
       case 'docx':
-        const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-        extractedContent = result.value;
+        const docxResult = await mammoth.extractRawText({ buffer });
+        extractedContent = docxResult.value;
         break;
       case 'txt':
       case 'md':
         extractedContent = buffer.toString('utf-8');
         break;
-      default:
-        return res.status(400).json({ msg: 'Unsupported file type' });
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
+        extractedContent = text;
+        break;
     }
 
     const document = new Document({
@@ -94,13 +60,18 @@ exports.upload = async (req, res) => {
       filename: originalname,
       content: extractedContent,
       type: documentType,
-      size: buffer.length, // Add file size here
+      size: size,
       upload_date: new Date(),
     });
+
     await document.save();
     res.json(document);
+
   } catch (err) {
-    console.error(err.message);
+    console.error('Error during file upload:', err);
+    if (err.message.includes('File size')) { // Check for multer's file size error
+        return res.status(400).json({ msg: 'File size exceeds the 100MB limit.' });
+    }
     res.status(500).send('Server error');
   }
 };
