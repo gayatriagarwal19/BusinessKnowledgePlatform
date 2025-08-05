@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import ReactMarkdown from 'react-markdown';
 import { sendMessage, addUserMessage, stopBotStreaming } from '../redux/chatSlice';
 
 function Chatbot() {
@@ -49,13 +50,13 @@ function Chatbot() {
             {messages.map((msg, index) => (
               <div key={index} className={`flex mb-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`${msg.sender === 'user' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 max-w-[70%]`}>
-                  <p>{msg.text}{msg.streaming && <span className="animate-pulse">...</span>}</p>
+                  <ReactMarkdown>{msg.text + (msg.streaming ? '...' : '')}</ReactMarkdown>
                 </div>
               </div>
             ))}
             {error && (
               <div className="flex mb-4 justify-start">
-                <div className="bg-red-200 text-red-800 rounded-lg p-3 max-w-[70%]">
+                <div className="bg-red-200 text-red-800 rounded-lg p-3 max-w-[70%] break-words">
                   <p>Error: {error}</p>
                 </div>
               </div>
