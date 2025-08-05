@@ -8,7 +8,8 @@ export const sendMessage = createAsyncThunk(
   async (message, { dispatch, rejectWithValue }) => {
     dispatch(addBotMessage({ text: '', streaming: true })); // Add a placeholder for the bot's response
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/chat/send`, {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${baseUrl}/chat/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

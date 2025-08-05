@@ -7,11 +7,39 @@ import { getDocuments } from '../redux/documentSlice';
 
 function DocumentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadProgress(0);
+      setIsUploading(false);
+    }
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadProgress(0);
+      setIsUploading(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -20,13 +48,20 @@ function DocumentUpload() {
       return;
     }
 
+    setIsUploading(true);
+    setUploadProgress(0);
+
     const formData = new FormData();
     formData.append('file', selectedFile);
 
     try {
-      const response = await axios.post('/api/documents/upload', formData, {
+      const response = await axios.post('/documents/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
         },
       });
       toast.success(`File uploaded successfully: ${response.data.filename}`);
@@ -38,6 +73,9 @@ function DocumentUpload() {
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.msg || 'Error uploading file.');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -45,25 +83,47 @@ function DocumentUpload() {
     <div className="p-6 bg-white rounded-lg shadow-md">
       <Toaster />
       <h2 className="text-2xl font-bold mb-4">Upload Document</h2>
-      <div className="mb-4">
+
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200
+          ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 bg-gray-50'}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current.click()}
+      >
         <input
           type="file"
           onChange={handleFileChange}
           ref={fileInputRef}
-          className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-full file:border-0
-            file:text-sm file:font-semibold
-            file:bg-indigo-50 file:text-indigo-700
-            hover:file:bg-indigo-100"
+          className="hidden"
         />
-        <p className="mt-2 px-2 text-sm text-gray-500">Supported formats: PDF, DOCX, TXT, MD</p>
+        {selectedFile ? (
+          <p className="text-gray-700 font-medium">Selected file: {selectedFile.name}</p>
+        ) : (
+          <p className="text-gray-500">Drag & drop a file here, or click to select</p>
+        )}
+        <p className="mt-2 text-sm text-gray-500">Supported formats: PDF, DOCX, TXT, MD</p>
       </div>
+
+      {isUploading && (
+        <div className="mt-4">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-indigo-600 h-2.5 rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">Uploading: {uploadProgress}%</p>
+        </div>
+      )}
+
       <button
         onClick={handleUpload}
-        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        disabled={!selectedFile || isUploading}
       >
-        Upload
+        {isUploading ? 'Uploading...' : 'Upload'}
       </button>
     </div>
   );

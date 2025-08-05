@@ -65,7 +65,7 @@ export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (passwords, { rejectWithValue }) => {
     try {
-      const response = await axios.put('/api/auth/password', passwords);
+      const response = await axios.put('/auth/password', passwords);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
