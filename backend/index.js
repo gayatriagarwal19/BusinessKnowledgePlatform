@@ -20,7 +20,7 @@ app.use(express.json());
 // Define routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/documents', require('./routes/document'));
-app.use('/api/search', require('./routes/search'));
+
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/analytics', require('./routes/analytics'));
 
