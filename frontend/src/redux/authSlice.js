@@ -10,6 +10,7 @@ const initialState = {
   isAppLoaded: false,
   error: null,
   loginMessage: null, // New state for login success message
+  sessionExpiredMessage: null, // New state for session expired message
 };
 
 export const registerUser = createAsyncThunk(
@@ -89,6 +90,9 @@ const authSlice = createSlice({
     clearLoginMessage: (state) => {
       state.loginMessage = null;
     },
+    clearSessionExpiredMessage: (state) => {
+      state.sessionExpiredMessage = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -138,6 +142,7 @@ const authSlice = createSlice({
           state.token = null;
           localStorage.removeItem('token'); // Ensure token is removed if it was invalid
           setAuthToken(null);
+          state.sessionExpiredMessage = 'Session expired. Please log in again.';
         } else {
           state.isAuthenticated = true;
           state.user = action.payload;
@@ -155,5 +160,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearLoginMessage } = authSlice.actions;
+export const { logout, clearLoginMessage, clearSessionExpiredMessage } = authSlice.actions;
 export default authSlice.reducer;
