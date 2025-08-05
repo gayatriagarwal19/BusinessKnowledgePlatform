@@ -8,6 +8,7 @@ const path = require('path');
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'jpg', 'jpeg', 'png']);
 
 exports.upload = async (req, res) => {
+  console.log('req.file:', req.file);
   try {
     if (!req.file) {
       return res.status(400).json({ msg: 'No file uploaded.' });
@@ -15,6 +16,7 @@ exports.upload = async (req, res) => {
 
     const { originalname, buffer, size } = req.file;
     const fileExtension = path.extname(originalname).slice(1).toLowerCase();
+    console.log(`Backend received file: ${originalname}, Extension: ${fileExtension}, Size: ${size} bytes`);
 
     // Validate file extension
     if (!ALLOWED_EXTENSIONS.has(fileExtension)) {
@@ -23,7 +25,7 @@ exports.upload = async (req, res) => {
 
     let extractedContent = '';
     const lowerCaseFilename = originalname.toLowerCase();
-    let documentType = '';
+    let documentType = 'general';
 
     if (lowerCaseFilename.includes('bill')) {
       documentType = 'bill';

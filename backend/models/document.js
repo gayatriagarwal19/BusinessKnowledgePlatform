@@ -17,7 +17,7 @@ const documentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['bill', 'feedback', 'revenue'],
+    enum: ['bill', 'feedback', 'revenue', 'general'],
   },
   size: {
     type: Number, // Size in bytes

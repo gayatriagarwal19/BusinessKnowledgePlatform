@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Toaster, toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { getDocuments } from '../redux/documentSlice';
+import imageCompression from 'browser-image-compression';
 
 function DocumentUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -13,13 +14,46 @@ function DocumentUpload() {
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedFile(file);
-      setUploadProgress(0);
-      setIsUploading(false);
+      await processAndSetFile(file);
     }
+  };
+
+  const handleDrop = async (event) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      await processAndSetFile(file);
+    }
+  };
+
+  const processAndSetFile = async (file) => {
+    console.log('Processing file:', file.name, 'Type:', file.type);
+    // Check if the file is an image type that can be compressed
+    if (file.type.startsWith('image/') && (file.type.includes('jpeg') || file.type.includes('png'))) {
+      try {
+        const options = {
+          maxSizeMB: 1,          // (max file size in MB)
+          maxWidthOrHeight: 1920, // (max width or height in pixels)
+          useWebWorker: true,    // (use web worker for faster compression)
+        };
+        const compressedFile = await imageCompression(file, options);
+        console.log(`Original image size: ${file.size / 1024 / 1024} MB`);
+        console.log(`Compressed image size: ${compressedFile.size / 1024 / 1024} MB`);
+        setSelectedFile(compressedFile);
+      } catch (error) {
+        console.error('Image compression error:', error);
+        toast.error('Failed to compress image. Uploading original file.');
+        setSelectedFile(file); // Fallback to original file if compression fails
+      }
+    } else {
+      setSelectedFile(file);
+    }
+    setUploadProgress(0);
+    setIsUploading(false);
   };
 
   const handleDragOver = (event) => {
@@ -29,17 +63,6 @@ function DocumentUpload() {
 
   const handleDragLeave = () => {
     setIsDragging(false);
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    setIsDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadProgress(0);
-      setIsUploading(false);
-    }
   };
 
   const handleUpload = async () => {
@@ -52,7 +75,7 @@ function DocumentUpload() {
     setUploadProgress(0);
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('file', selectedFile, selectedFile.name);
 
     try {
       const response = await axios.post('/documents/upload', formData, {
@@ -60,7 +83,7 @@ function DocumentUpload() {
           'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const percentCompleted = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
           setUploadProgress(percentCompleted);
         },
       });
@@ -97,6 +120,7 @@ function DocumentUpload() {
           onChange={handleFileChange}
           ref={fileInputRef}
           className="hidden"
+          accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png"
         />
         {selectedFile ? (
           <p className="text-gray-700 font-medium">Selected file: {selectedFile.name}</p>
