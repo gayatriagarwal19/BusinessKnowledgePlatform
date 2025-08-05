@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAnalyticsSummary } from '../redux/analyticsSlice';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { WordCloud } from '@isoterik/react-word-cloud';
 
 // --- Reusable Card Component ---
 const Card = ({ title, children }) => (
@@ -105,13 +104,7 @@ function Analytics() {
           </Card>
         )}
 
-        {summary.negativeKeywords && summary.negativeKeywords.length > 0 && (
-          <Card title="Common Negative Feedback Phrases">
-            <ResponsiveContainer width="100%" height="100%">
-              <WordCloud data={summary.negativeKeywords || []} />
-            </ResponsiveContainer>
-          </Card>
-        )}
+        
       </div>
     </div>
   );
