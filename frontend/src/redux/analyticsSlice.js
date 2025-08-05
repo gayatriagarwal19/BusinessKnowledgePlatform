@@ -6,7 +6,7 @@ export const getAnalyticsSummary = createAsyncThunk(
   'analytics/getSummary',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get('/api/analytics/summary');
+      const res = await axios.get('/analytics/summary');
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response.data);

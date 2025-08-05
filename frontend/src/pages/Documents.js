@@ -14,12 +14,14 @@ function Documents() {
 
   return (
     <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <DocumentSearch />
+      <div className="mb-6">
         <DocumentUpload />
       </div>
       <div>
-        <h2 className="text-2xl font-bold mb-4">My Documents</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">My Documents</h2>
+          <DocumentSearch />
+        </div>
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {isLoading ? (
             <p className="p-4">Loading documents...</p>

@@ -105,7 +105,7 @@ function Analytics() {
           </Card>
         )}
 
-        {summary.negativeKeywords?.length > 0 && (
+        {summary.negativeKeywords && summary.negativeKeywords.length > 0 && (
           <Card title="Common Negative Feedback Phrases">
             <ResponsiveContainer width="100%" height="100%">
               <WordCloud data={summary.negativeKeywords || []} />
