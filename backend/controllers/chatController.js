@@ -54,8 +54,12 @@ exports.sendMessage = async (req, res) => {
 
   } catch (err) {
     console.error('Error sending message to Gemini:', err);
+    let errorMessage = err.message || 'Server error';
+    if (err.message && err.message.includes('429 Too Many Requests')) {
+      errorMessage = 'The daily limit for requests has been exhausted. Please try again tomorrow.';
+    }
     // Send an error event to the client
-    res.write(`event: error\ndata: ${JSON.stringify({ msg: err.message || 'Server error' })}\n\n`);
+    res.write(`event: error\ndata: ${JSON.stringify({ msg: errorMessage })}\n\n`);
     res.end();
   }
 };

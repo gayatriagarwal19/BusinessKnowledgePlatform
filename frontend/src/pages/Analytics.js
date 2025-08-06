@@ -30,7 +30,7 @@ function Analytics() {
 
   //session expired handling
   useEffect(() => {
-    if (error) {
+    if (error === "Token is not valid") {
       console.log('entering analytics error useEffect');
       toast.error("Session expired. Please log in again.");
       dispatch(logout());
@@ -45,7 +45,8 @@ function Analytics() {
   if (loading) return <p className="text-center text-gray-500 mt-10">Loading analytics dashboard...</p>;
   if (error) return <p className="text-center text-red-500 mt-10">Error: {error.msg || 'Could not fetch analytics'}</p>;
   if (!summary) return <p className="text-center text-gray-500 mt-10">No analytics data available.</p>;
-
+   
+   console.log('sentimentData.length:', (summary.sentiment || {}).length > 0 ? Object.entries(summary.sentiment || {}).map(([name, value]) => ({ name, value })).length : 0);
   const COLORS = { positive: '#4caf50', neutral: '#ffc107', negative: '#f44336' };
   const sentimentData = Object.entries(summary.sentiment || {}).map(([name, value]) => ({ name, value }));
 
@@ -101,8 +102,8 @@ function Analytics() {
             </ResponsiveContainer>
           </Card>
         )}
-
-        {sentimentData.length > 0 && (
+        
+        {summary.sentiment && sentimentData.length > 0 && (
           <Card title="Feedback Sentiment">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

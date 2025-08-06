@@ -18,13 +18,15 @@ exports.getSummary = async (req, res) => {
     return res.status(503).json({ msg: 'Analytics functionality is limited. Please configure GEMINI_API_KEY.' });
   }
 
+  let bills, feedbacks, revenues;
+
   try {
     const userId = req.user.id;
     const documents = await Document.find({ userId });
 
-    const bills = documents.filter(doc => doc.type === 'bill');
-    const feedbacks = documents.filter(doc => doc.type === 'feedback');
-    const revenues = documents.filter(doc => doc.type === 'revenue');
+    bills = documents.filter(doc => doc.type === 'bill');
+    feedbacks = documents.filter(doc => doc.type === 'feedback');
+    revenues = documents.filter(doc => doc.type === 'revenue');
 
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
@@ -40,10 +42,10 @@ exports.getSummary = async (req, res) => {
       return res.json({
         kpis: {
           ...nonRevenueKPIs,
-          totalRevenueThisMonth: "0.00",
+          totalRevenueThisMonth: "N/A",
         },
         revenueOverTime: [],
-        sentiment: { positive: 0, neutral: 0, negative: 0 },
+        sentiment: null, // Explicitly set to null
         topItems: [],
         negativeKeywords: [],
         businessSummary: "AI analytics are temporarily unavailable. Please try again later.",
@@ -78,6 +80,21 @@ exports.getSummary = async (req, res) => {
 
   } catch (err) {
     console.error('Error generating analytics summary:', err);
+    if (err.message.includes('The daily limit for requests has been exhausted')) {
+      const nonRevenueKPIs = calculateNonRevenueKPIs(bills, feedbacks);
+      return res.status(429).json({
+        kpis: {
+          ...nonRevenueKPIs,
+          totalRevenueThisMonth: "N/A",
+        },
+        revenueOverTime: [],
+        sentiment: null, // Explicitly set to null
+        topItems: [],
+        negativeKeywords: [],
+        businessSummary: "AI-powered analytics are unavailable due to daily limit. Basic metrics are shown below.",
+        error: err.message,
+      });
+    }
     res.status(500).json({ msg: err.message || 'Server error' });
   }
 };
@@ -94,6 +111,9 @@ const getAIResponseWithRetry = async (model, prompt, retries = 3, delayMs = 1500
       text = text.replace(/```json/g, '').replace(/```/g, '').trim();
       return text; // Success
     } catch (e) {
+      if (e.message && e.message.includes('429 Too Many Requests')) {
+        throw new Error('The daily limit for requests has been exhausted. Please try again tomorrow.');
+      }
       if (e.status === 503 && i < retries - 1) {
         console.warn(`AI model is overloaded. Retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
         await delay(delayMs);
