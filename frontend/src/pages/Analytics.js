@@ -18,7 +18,7 @@ const Card = ({ title, children }) => (
 const KpiCard = ({ title, value }) => (
   <div className="bg-white p-6 rounded-lg shadow-md text-center transition-shadow hover:shadow-lg">
     <h3 className="text-lg font-semibold text-gray-600">{title}</h3>
-    <p className="text-3xl font-bold text-indigo-600">{value}</p>
+    <p className="text-3xl font-bold text-indigo-600">{title.includes('Revenue') || title.includes('Bill Size') ? `$${value}` : value}</p>
   </div>
 );
 
@@ -65,7 +65,7 @@ function Analytics() {
       {/* KPI Cards */}
       {summary.kpis && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <KpiCard title="Total Revenue (Last 7 Days)" value={`${summary.kpis.totalRevenueThisWeek}`} />
+          <KpiCard title="Revenue (Current Month)" value={`${summary.kpis.totalRevenueThisMonth}`} />
           <KpiCard title="Average Bill Size" value={`${summary.kpis.averageBillSize}`} />
           <KpiCard title="Total Feedback Received" value={summary.kpis.feedbackCount} />
         </div>
@@ -115,6 +115,18 @@ function Analytics() {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
+          </Card>
+        )}
+
+        {summary.negativeKeywords && summary.negativeKeywords.length > 0 && (
+          <Card title="Common Negative Feedback">
+            <div className="flex flex-wrap gap-2">
+              {summary.negativeKeywords.map((keyword, index) => (
+                <span key={index} className="bg-red-100 text-red-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">
+                  {keyword.text} ({keyword.value})
+                </span>
+              ))}
+            </div>
           </Card>
         )}
 
