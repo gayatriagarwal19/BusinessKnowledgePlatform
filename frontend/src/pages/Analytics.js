@@ -2,6 +2,9 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAnalyticsSummary } from '../redux/analyticsSlice';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { logout } from '../redux/authSlice';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 // --- Reusable Card Component ---
 const Card = ({ title, children }) => (
@@ -23,6 +26,17 @@ const KpiCard = ({ title, value }) => (
 function Analytics() {
   const dispatch = useDispatch();
   const { summary, loading, error } = useSelector((state) => state.analytics);
+  const navigate = useNavigate();
+
+  //session expired handling
+  useEffect(() => {
+    if (error) {
+      console.log('entering analytics error useEffect');
+      toast.error("Session expired. Please log in again.");
+      dispatch(logout());
+      navigate('/login'); // Ensure the toast is shown only once
+    }
+  }, [dispatch, navigate, error]);;
 
   useEffect(() => {
     dispatch(getAnalyticsSummary());

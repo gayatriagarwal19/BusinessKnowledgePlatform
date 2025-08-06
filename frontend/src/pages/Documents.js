@@ -3,10 +3,22 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getDocuments } from '../redux/documentSlice';
 import DocumentUpload from '../components/DocumentUpload';
 import DocumentSearch from '../components/DocumentSearch';
+import { logout } from '../redux/authSlice';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 function Documents() {
   const dispatch = useDispatch();
   const { documents, isLoading, error } = useSelector((state) => state.documents);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (error) {
+      console.log('entering docs error useEffect');
+      toast.error("Session expired. Please log in again.");
+      dispatch(logout());
+      navigate('/login'); // Ensure the toast is shown only once
+    }
+  }, [dispatch, navigate, error]);
 
   useEffect(() => {
     dispatch(getDocuments());

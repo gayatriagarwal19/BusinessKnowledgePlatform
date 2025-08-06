@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadUser, changePassword } from '../redux/authSlice';
 import { toast, Toaster } from 'react-hot-toast';
-
+import { logout } from '../redux/authSlice';
+import { useNavigate } from 'react-router-dom';
 function Profile() {
   const dispatch = useDispatch();
   const { user, isLoading, error } = useSelector((state) => state.auth);
@@ -10,6 +11,17 @@ function Profile() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+      if (error === "Token is not valid") {
+        console.log('entering profile error useEffect');
+        toast.error("Session expired. Please log in again.");
+        dispatch(logout());
+        navigate('/login'); // Ensure the toast is shown only once
+      }
+    }, [dispatch, navigate, error]);
 
   useEffect(() => {
     if (!user) {

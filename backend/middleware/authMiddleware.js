@@ -14,6 +14,7 @@ module.exports = function (req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.user;
+    console.log('Auth Middleware: Token exp:', decoded.exp, 'Current time:', Math.floor(Date.now() / 1000));
     console.log('Auth Middleware: Token successfully decoded for user:', req.user.id);
     next();
   } catch (err) {

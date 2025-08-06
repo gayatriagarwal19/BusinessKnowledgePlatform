@@ -1,25 +1,16 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, clearLoginMessage, clearSessionExpiredMessage } from '../redux/authSlice';
+import { loginUser, clearLoginMessage } from '../redux/authSlice';
 import { Toaster, toast } from 'react-hot-toast';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
-  const { isLoading, error, isAuthenticated, loginMessage, sessionExpiredMessage } = useSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, loginMessage } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const sessionToastShown = useRef(false);
-
-  useEffect(() => {
-    if (sessionExpiredMessage && !sessionToastShown.current) {
-      toast.error(sessionExpiredMessage);
-      dispatch(clearSessionExpiredMessage());
-      sessionToastShown.current = true; // Ensure the toast is shown only once
-    }
-  }, [sessionExpiredMessage, dispatch]);
 
   useEffect(() => {
     if (isAuthenticated && loginMessage) {

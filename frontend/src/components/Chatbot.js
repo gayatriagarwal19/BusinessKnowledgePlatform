@@ -1,8 +1,11 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ReactMarkdown from 'react-markdown';
 import { sendMessage, addUserMessage, stopBotStreaming } from '../redux/chatSlice';
+import { logout } from '../redux/authSlice';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +13,7 @@ function Chatbot() {
   const dispatch = useDispatch();
   const { messages, isLoading, isBotTyping, error } = useSelector((state) => state.chat);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
@@ -26,6 +30,15 @@ function Chatbot() {
       setInput('');
     }
   };
+
+  useEffect(() => {
+      if (error === "Token is not valid") {
+        console.log('entering profile error useEffect');
+        toast.error("Session expired. Please log in again.");
+        dispatch(logout());
+        navigate('/login'); // Ensure the toast is shown only once
+      }
+    }, [dispatch, navigate, error]);;
 
   // Scroll to the bottom of the chat window
   useEffect(() => {
