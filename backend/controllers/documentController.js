@@ -85,7 +85,11 @@ exports.getDocuments = async (req, res) => {
     let query = { userId };
 
     if (search) {
+      //$or condition finds documents where the search term appears in either
+      //the filename or the content field. 
       query.$or = [
+        //The $regex operator allows for partial matching, 
+        //$options: 'i' makes search case-insensitive.
         { filename: { $regex: search, $options: 'i' } },
         { content: { $regex: search, $options: 'i' } },
       ];
@@ -93,39 +97,6 @@ exports.getDocuments = async (req, res) => {
 
     const documents = await Document.find(query);
     res.json(documents);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.getDocument = async (req, res) => {
-  try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: 'Document not found' });
-    }
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
-    res.json(document);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.deleteDocument = async (req, res) => {
-  try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ msg: 'Document not found' });
-    }
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
-    }
-    await document.remove();
-    res.json({ msg: 'Document removed' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

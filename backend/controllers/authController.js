@@ -1,4 +1,3 @@
-
 const User = require('../models/user');
 const Document = require('../models/document');
 const bcrypt = require('bcryptjs');
@@ -83,7 +82,7 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select('-password'); //excludes the password field from the returned user object
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
